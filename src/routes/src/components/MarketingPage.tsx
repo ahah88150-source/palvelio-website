@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 
 type Lang = 'en' | 'fi' | 'ar'
 const copy = {
@@ -21,7 +21,40 @@ useEffect(()=>{const saved=localStorage.getItem('palvelio-language');if(saved===
 useEffect(()=>{document.documentElement.lang=lang;document.documentElement.dir=lang==='ar'?'rtl':'ltr';localStorage.setItem('palvelio-language',lang)},[lang])
 function open(kind:'customer'|'provider',index?:number){if(index!==undefined)setService(String(index));setStatus('idle');setModal(kind);dialog.current?.showModal()}
 function close(){dialog.current?.close();setModal(null)}
-async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();if(status==='sending')return;setStatus('sending');const data=new URLSearchParams(new FormData(e.currentTarget) as unknown as Record<string,string>);try{const res=await fetch('/__forms.html',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:data.toString(),signal:AbortSignal.timeout(15000)});if(!res.ok)throw Error();const body=await res.text();if(body.includes('data-netlify="true"'))throw Error();setStatus('success')}catch{setStatus('error')}}
+async function submit(e: FormEvent<HTMLFormElement>) {
+  e.preventDefault()
+  if (status === 'sending') return
+
+  setStatus('sending')
+
+  const formData = new FormData(e.currentTarget)
+  const data = new URLSearchParams()
+
+  formData.forEach((value, key) => {
+    data.append(key, String(value))
+  })
+
+  try {
+    const res = await fetch('/__forms.html', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data.toString(),
+      signal: AbortSignal.timeout(15000),
+    })
+
+    if (!res.ok) throw Error()
+
+    const body = await res.text()
+    if (body.includes('data-netlify="true"')) throw Error()
+
+    setStatus('success')
+  } catch {
+    setStatus('error')
+  }
+}
+ 
 return <div id="top"><header className="header"><a href="#top" className="brand" aria-label="Palvelio home"><Mark/>palvelio<span className="brand-dot">.</span></a><nav className="desktop-nav">{t.nav.map((x,i)=><a key={x} href={['#services','#how-it-works','#providers'][i]}>{x}</a>)}</nav><div className="header-actions"><div className="languages" aria-label="Language">{(['en','fi','ar'] as Lang[]).map(l=><button lang={l} key={l} onClick={()=>setLang(l)} className={lang===l?'selected':''}>{l==='ar'?'عربي':l.toUpperCase()}</button>)}</div><button className="button small dark header-cta" onClick={()=>open('provider')}>{t.join}<Arrow/></button></div></header>
 
  <main><section className="hero"><div className="hero-copy"><div className="eyebrow"><span className="tiny-star">✳</span>{t.eyebrow}</div><h1>{t.title[0]}<br/><span>{t.title[1]}</span></h1><p className="hero-intro">{t.intro}</p><div className="location-note"><span className="location-pin">⌖</span>{t.cities}<span className="live-dot"/></div></div><div className="hero-photo"><img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=90" alt={lang==='ar'?'غرفة معيشة هادئة ومشرقة':lang==='fi'?'Valoisa ja rauhallinen olohuone':'A bright, peaceful home with natural furnishings'}/><div className="photo-label"><span className="label-icon">⌂</span><div><strong>{t.note}</strong><small>{t.cities}</small></div><span className="sparkle">✳</span></div><div className="photo-corner">HELSINKI · ESPOO · VANTAA</div></div>  
