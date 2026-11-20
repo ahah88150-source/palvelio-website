@@ -4,25 +4,18 @@ import {
   createRootRoute,
 } from '@tanstack/react-router'
 
-import { site } from '../data/site'
-import { NotFoundPage } from '../components/NotFoundPage'
 import '../styles.css'
 
-const siteName = site.name
-const siteDescription = site.description
-
 export const Route = createRootRoute({
-  notFoundComponent: NotFoundPage,
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: siteName },
-      { name: 'description', content: siteDescription },
-      { property: 'og:title', content: siteName },
-      { property: 'og:description', content: siteDescription },
-      { property: 'og:type', content: 'website' },
-      { name: 'twitter:card', content: 'summary_large_image' },
+      { title: 'Palvelio' },
+      {
+        name: 'description',
+        content: 'Local help. More life.',
+      },
     ],
   }),
   shellComponent: RootDocument,
